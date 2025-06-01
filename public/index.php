@@ -29,10 +29,17 @@ $router->get('/clientes/eliminarAPI', [ClientesController::class, 'eliminarAPI']
 
 // Rutas del carrito
 $router->get('/carrito', [FacturaController::class, 'renderizarPagina']);
+$router->get('/carrito/modificar', [FacturaController::class, 'renderizarPaginaModificar']);
+$router->get('/facturas', [FacturaController::class, 'renderizarPaginaFacturas']);
+$router->get('/carrito/buscarFacturaPorIdAPI', [FacturaController::class, 'buscarFacturaPorIdAPI']);
+$router->post('/carrito/modificarFacturaAPI', [FacturaController::class, 'modificarFacturaAPI']);
 $router->get('/carrito/buscarClientesAPI', [FacturaController::class, 'buscarClientesAPI']);
 $router->get('/carrito/buscarProductosDisponiblesAPI', [FacturaController::class, 'buscarProductosDisponiblesAPI']);
 $router->post('/carrito/guardarFacturaAPI', [FacturaController::class, 'guardarFacturaAPI']);
 $router->get('/carrito/buscarFacturasAPI', [FacturaController::class, 'buscarFacturasAPI']);
+
+
+
 
 // Comprueba y valida las rutas, que existan y les asigna las funciones del Controlador
 $router->comprobarRutas();

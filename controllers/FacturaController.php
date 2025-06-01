@@ -17,6 +17,16 @@ class FacturaController extends ActiveRecord
         $router->render('carrito/index', []);
     }
 
+    public function renderizarPaginaModificar(Router $router)
+    {
+        $router->render('carrito/modificar', []);
+    }
+
+    public function renderizarPaginaFacturas(Router $router)
+    {
+        $router->render('carrito/facturas', []);
+    }
+
     public static function buscarClientesAPI()
     {
         getHeadersApi();
@@ -184,6 +194,189 @@ class FacturaController extends ActiveRecord
             echo json_encode([
                 'codigo' => 0,
                 'mensaje' => 'Error al obtener las facturas',
+                'detalle' => $e->getMessage()
+            ]);
+        }
+    }
+
+    public static function buscarFacturaPorIdAPI()
+    {
+        getHeadersApi();
+
+        if (empty($_GET['id'])) {
+            http_response_code(400);
+            echo json_encode([
+                'codigo' => 0,
+                'mensaje' => 'ID de factura es requerido'
+            ]);
+            return;
+        }
+
+        try {
+            $idFactura = filter_var($_GET['id'], FILTER_SANITIZE_NUMBER_INT);
+
+            $sqlFactura = "SELECT f.id, f.numero_factura, f.id_cliente, f.fecha_factura, 
+                                  f.subtotal, f.impuestos, f.descuento, f.total, f.estado, 
+                                  f.observaciones, f.fecha_creacion,
+                                  c.nombre, c.apellido, c.email, c.telefono, c.nit, c.direccion
+                           FROM facturasCC f 
+                           INNER JOIN clientesCC c ON f.id_cliente = c.id 
+                           WHERE f.id = $idFactura AND f.situacion = 1";
+
+            $factura = self::fetchFirst($sqlFactura);
+
+            if (!$factura) {
+                http_response_code(404);
+                echo json_encode([
+                    'codigo' => 0,
+                    'mensaje' => 'Factura no encontrada'
+                ]);
+                return;
+            }
+
+            $sqlDetalles = "SELECT df.id, df.id_producto, df.cantidad, df.precio_unitario, 
+                                   df.subtotal, df.descuento_linea, df.total_linea,
+                                   p.nombre as producto_nombre, p.descripcion, p.stock_disponible
+                            FROM detalle_facturasCC df 
+                            INNER JOIN productosCC p ON df.id_producto = p.id 
+                            WHERE df.id_factura = $idFactura AND df.situacion = 1
+                            ORDER BY p.nombre";
+
+            $detalles = self::fetchArray($sqlDetalles);
+
+            $facturaCompleta = [
+                'factura' => $factura,
+                'detalles' => $detalles,
+                'cliente' => [
+                    'id' => $factura['id_cliente'],
+                    'nombre' => $factura['nombre'],
+                    'apellido' => $factura['apellido'],
+                    'email' => $factura['email'],
+                    'telefono' => $factura['telefono'],
+                    'nit' => $factura['nit'],
+                    'direccion' => $factura['direccion']
+                ]
+            ];
+
+            http_response_code(200);
+            echo json_encode([
+                'codigo' => 1,
+                'mensaje' => 'Factura encontrada',
+                'data' => $facturaCompleta
+            ]);
+        } catch (Exception $e) {
+            http_response_code(400);
+            echo json_encode([
+                'codigo' => 0,
+                'mensaje' => 'Error al buscar la factura',
+                'detalle' => $e->getMessage()
+            ]);
+        }
+    }
+
+    public static function modificarFacturaAPI()
+    {
+        getHeadersApi();
+
+        if (empty($_POST['id_factura'])) {
+            http_response_code(400);
+            echo json_encode(['codigo' => 0, 'mensaje' => 'ID de factura es requerido']);
+            return;
+        }
+
+        if (empty($_POST['productos'])) {
+            http_response_code(400);
+            echo json_encode(['codigo' => 0, 'mensaje' => 'Debe seleccionar al menos un producto']);
+            return;
+        }
+
+        try {
+            $idFactura = intval($_POST['id_factura']);
+            $sqlVerificar = "SELECT id, numero_factura FROM facturasCC WHERE id = $idFactura AND situacion = 1";
+            $facturaExistente = self::fetchFirst($sqlVerificar);
+
+            if (!$facturaExistente) {
+                http_response_code(404);
+                echo json_encode(['codigo' => 0, 'mensaje' => 'Factura no encontrada']);
+                return;
+            }
+
+            $sqlDetallesOriginales = "SELECT id_producto, cantidad FROM detalle_facturasCC 
+                                     WHERE id_factura = $idFactura AND situacion = 1";
+            $detallesOriginales = self::fetchArray($sqlDetallesOriginales);
+
+            foreach ($detallesOriginales as $detalle) {
+                $sqlRevertirStock = "UPDATE productosCC 
+                                    SET stock_disponible = stock_disponible + {$detalle['cantidad']} 
+                                    WHERE id = {$detalle['id_producto']}";
+                self::SQL($sqlRevertirStock);
+            }
+
+            $sqlDesactivarDetalles = "UPDATE detalle_facturasCC SET situacion = 0 WHERE id_factura = $idFactura";
+            self::SQL($sqlDesactivarDetalles);
+
+            $subtotal = 0;
+            $productos = $_POST['productos'];
+
+            foreach ($productos as $producto) {
+                $cantidad = intval($producto['cantidad']);
+                $precio = floatval($producto['precio']);
+                $sqlStock = "SELECT stock_disponible FROM productosCC WHERE id = {$producto['id']}";
+                $stockActual = self::fetchFirst($sqlStock);
+
+                if ($cantidad > $stockActual['stock_disponible']) {
+                    throw new Exception("Stock insuficiente para producto ID {$producto['id']}. Disponible: {$stockActual['stock_disponible']}, Solicitado: $cantidad");
+                }
+
+                $subtotal += $cantidad * $precio;
+            }
+
+            $impuestos = $subtotal * 0.12;
+            $descuento = floatval($_POST['descuento'] ?? 0);
+            $total = $subtotal + $impuestos - $descuento;
+
+            $sqlActualizarFactura = "UPDATE facturasCC SET 
+                                    subtotal = $subtotal,
+                                    impuestos = $impuestos,
+                                    descuento = $descuento,
+                                    total = $total,
+                                    observaciones = '" . htmlspecialchars($_POST['observaciones'] ?? '') . "'
+                                    WHERE id = $idFactura";
+            self::SQL($sqlActualizarFactura);
+            foreach ($productos as $producto) {
+                $cantidad = intval($producto['cantidad']);
+                $precio = floatval($producto['precio']);
+                $subtotalLinea = $cantidad * $precio;
+                $detalle = new DetalleFactura([
+                    'id_factura' => $idFactura,
+                    'id_producto' => intval($producto['id']),
+                    'cantidad' => $cantidad,
+                    'precio_unitario' => $precio,
+                    'subtotal' => $subtotalLinea,
+                    'descuento_linea' => 0,
+                    'total_linea' => $subtotalLinea,
+                    'situacion' => 1
+                ]);
+
+                $detalle->crear();
+
+                $sqlDescontarStock = "UPDATE productosCC 
+                                     SET stock_disponible = stock_disponible - $cantidad 
+                                     WHERE id = " . intval($producto['id']);
+                self::SQL($sqlDescontarStock);
+            }
+
+            http_response_code(200);
+            echo json_encode([
+                'codigo' => 1,
+                'mensaje' => 'Factura modificada exitosamente',
+                'numero_factura' => $facturaExistente['numero_factura']
+            ]);
+        } catch (Exception $e) {
+            http_response_code(400);
+            echo json_encode([
+                'codigo' => 0,
+                'mensaje' => 'Error al modificar la factura',
                 'detalle' => $e->getMessage()
             ]);
         }

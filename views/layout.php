@@ -39,6 +39,9 @@
                     <li class="nav-item">
                         <a class="nav-link" href="/carritocompras/carrito"><i class="bi bi-cart me-2"></i>Carrito</a>
                     </li>
+                    <li class="nav-item">
+                        <a class="nav-link" href="/carritocompras/facturas"><i class="bi bi-receipt me-2"></i>Facturas</a>
+                    </li>
 
                     <div class="nav-item dropdown ">
                         <a class="nav-link dropdown-toggle" href="#" data-bs-toggle="dropdown">
@@ -55,7 +58,7 @@
                                 <a class="dropdown-item nav-link text-white" href="/carritocompras/carrito"><i class="ms-lg-0 ms-2 bi bi-cart me-2"></i>Carrito de Compras</a>
                             </li>
                             <li>
-                                <a class="dropdown-item nav-link text-white " href="#"><i class="ms-lg-0 ms-2 bi bi-receipt me-2"></i>Facturas</a>
+                                <a class="dropdown-item nav-link text-white " href="/carritocompras/facturas"><i class="ms-lg-0 ms-2 bi bi-receipt me-2"></i>Facturas</a>
                             </li>
                         </ul>
                     </div>
