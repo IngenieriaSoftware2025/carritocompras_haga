@@ -5,6 +5,7 @@ use MVC\Router;
 use Controllers\AppController;
 use Controllers\ProductosController;
 use Controllers\ClientesController;
+use Controllers\FacturaController;
 
 $router = new Router();
 $router->setBaseURL('/' . $_ENV['APP_NAME']);
@@ -25,6 +26,13 @@ $router->get('/clientes/buscarAPI', [ClientesController::class, 'buscarClientesA
 $router->post('/clientes/guardarAPI', [ClientesController::class, 'guardarAPI']);
 $router->post('/clientes/modificarAPI', [ClientesController::class, 'modificarAPI']);
 $router->get('/clientes/eliminarAPI', [ClientesController::class, 'eliminarAPI']);
+
+// Rutas del carrito
+$router->get('/carrito', [FacturaController::class, 'renderizarPagina']);
+$router->get('/carrito/buscarClientesAPI', [FacturaController::class, 'buscarClientesAPI']);
+$router->get('/carrito/buscarProductosDisponiblesAPI', [FacturaController::class, 'buscarProductosDisponiblesAPI']);
+$router->post('/carrito/guardarFacturaAPI', [FacturaController::class, 'guardarFacturaAPI']);
+$router->get('/carrito/buscarFacturasAPI', [FacturaController::class, 'buscarFacturasAPI']);
 
 // Comprueba y valida las rutas, que existan y les asigna las funciones del Controlador
 $router->comprobarRutas();
