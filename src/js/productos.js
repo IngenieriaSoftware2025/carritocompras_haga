@@ -13,12 +13,10 @@ const GuardarProducto = async (event) => {
     event.preventDefault();
     BtnGuardar.disabled = true;
 
-    // Validación personalizada sin required
     const nombre = document.getElementById('producto_nombre').value.trim();
     const precio = document.getElementById('producto_precio').value.trim();
     const stock = document.getElementById('producto_stock').value.trim();
 
-    // Validar campos obligatorios
     if (!nombre) {
         Swal.fire({
             position: "center",
@@ -205,7 +203,6 @@ const ModificarProducto = async (event) => {
     event.preventDefault();
     BtnModificar.disabled = true;
 
-    // Validación personalizada
     const nombre = document.getElementById('producto_nombre').value.trim();
     const precio = document.getElementById('producto_precio').value.trim();
     const stock = document.getElementById('producto_stock').value.trim();
