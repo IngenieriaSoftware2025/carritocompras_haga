@@ -87,7 +87,7 @@
                 <div class="card-body">
                     <div class="table-responsive w-100">
                         <table class="table table-striped table-hover" id="TablaClientes">
-                            <thead class="table-active">
+                            <thead class="table-active w-100">
                                 <tr>
                                     <th>No.</th>
                                     <th>Nombre Completo</th>

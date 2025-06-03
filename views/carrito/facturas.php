@@ -70,7 +70,7 @@
                 </div>
                 <div class="card-body">
                     <div class="table-responsive">
-                        <table class="table table-striped table-hover" id="TablaFacturas">
+                        <table class="table table-striped table-hover  w-100" id="TablaFacturas">
                             <thead class="table-success">
                                 <tr>
                                     <th>No.</th>
