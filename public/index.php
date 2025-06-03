@@ -6,7 +6,6 @@ use Controllers\AppController;
 use Controllers\ProductosController;
 use Controllers\ClientesController;
 use Controllers\FacturaController;
-use Controllers\PDFController;
 
 $router = new Router();
 $router->setBaseURL('/' . $_ENV['APP_NAME']);
@@ -38,11 +37,6 @@ $router->get('/carrito/buscarClientesAPI', [FacturaController::class, 'buscarCli
 $router->get('/carrito/buscarProductosDisponiblesAPI', [FacturaController::class, 'buscarProductosDisponiblesAPI']);
 $router->post('/carrito/guardarFacturaAPI', [FacturaController::class, 'guardarFacturaAPI']);
 $router->get('/carrito/buscarFacturasAPI', [FacturaController::class, 'buscarFacturasAPI']);
-
-//Rutas de factura PDF
-$router->get('/pdf/factura', [PDFController::class, 'generarFacturaPDF']);
-$router->get('/pdf/descargar', [PDFController::class, 'descargarPDF']);
-
 
 // Comprueba y valida las rutas, que existan y les asigna las funciones del Controlador
 $router->comprobarRutas();

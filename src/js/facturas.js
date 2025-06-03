@@ -245,7 +245,6 @@ const actualizarEstadisticas = (datos = facturasData) => {
 };
 
 const modificarFactura = (id, numero) => {
-    // Redirigir a página de modificación
     window.location.href = `/carritocompras/carrito/modificar?id=${id}`;
 };
 
@@ -363,56 +362,13 @@ const mostrarModalDetalles = (facturaData) => {
     });
 };
 
-const generarPDF = async (id, numero) => {
-    try {
-        Swal.fire({
-            title: 'Generando PDF...',
-            text: 'Por favor espere mientras se genera la factura',
-            allowOutsideClick: false,
-            showConfirmButton: false,
-            willOpen: () => {
-                Swal.showLoading();
-            }
-        });
-        
-        const url = `/carritocompras/pdf/factura?id=${id}`;
-        const response = await fetch(url);
-        const datos = await response.json();
-        
-        Swal.close();
-        
-        if (datos.codigo === 1) {
-            await Swal.fire({
-                icon: 'success',
-                title: 'PDF Generado',
-                text: `Factura ${numero} lista para descargar`,
-                showConfirmButton: true,
-                confirmButtonText: 'Descargar',
-                showCancelButton: true,
-                cancelButtonText: 'Cerrar'
-            }).then((result) => {
-                if (result.isConfirmed) {
-                    const urlDescarga = `/carritocompras/pdf/descargar?archivo=${datos.archivo}`;
-                    window.open(urlDescarga, '_blank');
-                }
-            });
-        } else {
-            Swal.fire({
-                icon: 'error',
-                title: 'Error',
-                text: datos.mensaje
-            });
-        }
-        
-    } catch (error) {
-        Swal.close();
-        console.error('Error al generar PDF:', error);
-        Swal.fire({
-            icon: 'error',
-            title: 'Error',
-            text: 'Error al comunicarse con el servidor'
-        });
-    }
+const generarPDF = (id, numero) => {
+    Swal.fire({
+        icon: 'info',
+        title: 'Funcionalidad en desarrollo',
+        text: `La generación de PDF para la factura ${numero} estará disponible próximamente.`,
+        showConfirmButton: true
+    });
 };
 
 window.cargarFacturas = cargarFacturas;
